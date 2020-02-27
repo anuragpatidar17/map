@@ -1,24 +1,11 @@
 <?php
-    session_start(); //we need session for the log in thingy XD 
-     define('DBINFO','mysql:host=localhost;dbname=webscrap');
-    define('DBUSER','root');
-    define('DBPASS','');
+$mysqli = new mysqli("localhost","root","","webscrap");
 
-    function performQuery($query){
-        $con = new PDO(DBINFO,DBUSER,DBPASS);
-        $stmt = $con->prepare($query);
-        if($stmt->execute()){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    function fetchAll($query){
-        $con = new PDO(DBINFO, DBUSER, DBPASS);
-        $stmt = $con->query($query);
-        return $stmt->fetchAll();
-    }
+// Check connection
+if ($mysqli -> connect_errno) {
+  echo "Failed to connect to MySQL: " . $mysqli -> connect_error;
+  exit();
+}
 ?>
 
 <?php
@@ -42,8 +29,9 @@ for($i=0;$i<20;$i++)
 
  echo  "Lat - ".$latitudeFrom."    "." Lng - ".$longitudeTo."<br>";
 
-             $query = "select latitude,longitude from `accounts` WHERE latitude=$latitudeFrom OR longitude=$longitudeTo;";
-                if(count(fetchAll($query))>0){
+               $result = $mysqli->query("select lat,lng from accounts WHERE lat=$latitudeFrom OR lng=$longitudeTo");
+                $row = mysqli_num_rows($result);
+                if($row >0){
                 	echo  "Final-"." "."Lat - ".$latitudeFrom."    "." Lng - ".$longitudeTo."<br>";
                   break;
 
