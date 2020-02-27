@@ -1,24 +1,11 @@
 <?php
-    session_start(); //we need session for the log in thingy XD 
-     define('DBINFO','mysql:host=localhost;dbname=webscrap');
-    define('DBUSER','root');
-    define('DBPASS','');
+$mysqli = new mysqli("localhost","root","","webscrap");
 
-    function performQuery($query){
-        $con = new PDO(DBINFO,DBUSER,DBPASS);
-        $stmt = $con->prepare($query);
-        if($stmt->execute()){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    function fetchAll($query){
-        $con = new PDO(DBINFO, DBUSER, DBPASS);
-        $stmt = $con->query($query);
-        return $stmt->fetchAll();
-    }
+// Check connection
+if ($mysqli -> connect_errno) {
+  echo "Failed to connect to MySQL: " . $mysqli -> connect_error;
+  exit();
+}
 ?>
 
 
@@ -26,7 +13,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Login V12</title>
+	<title>Map</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--===============================================================================================-->	
@@ -48,38 +35,28 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 	 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <!--===============================================================================================-->
+
+
 <?php
             
-                $query = "select latitude,longitude,content from `accounts`";
-                if(count(fetchAll($query))>0){
-                    foreach(fetchAll($query) as $row){
-                      ?>
-                   
-					 <p class="lead text-muted"><?php   $GLOBALS['z'] = $row['latitude'];  $GLOBALS['y'] = $row['longitude'];  $GLOBALS['x'] = $row['content']; ?></p>
-					
-				     <?php
-                    }
-                }else{
-                    echo "No Pending Requests.";
-                }
-            ?>
-            
-  <script>
-var lati; 
-	console.log(lati = <?php echo $z ?>);
-var longi;
-	console.log(longi = <?php echo $y ?>);
-var con; 
-	console.log(con = <?php echo $x ?>);
+             $result = $mysqli->query("SELECT * FROM accounts");
+          
+          
+  $result2 = $mysqli->query("SELECT * FROM accounts");
+        
+      
 
-</script>
+
+            ?>
+
 
 
     <script>
     	  
   function calculateRoute(from, to) {
-    // Center initialized to Naples, Italy
+   
      var colors = ['#2AB1D6'];
+     var bounds = new google.maps.LatLngBounds();
     var myOptions = {
       zoom: 10,
       center: new google.maps.LatLng(28.644800,77.216721),
@@ -102,22 +79,7 @@ var con;
     };
 
 
-      var marker = new google.maps.Marker({ 
-		position:  {lat: lati, lng: longi}, 
-		map: mapObject
-		}); 
-
-
-var contentString ='<h5> <?php echo $x ?> </h5>'
-
-  var infowindow = new google.maps.InfoWindow({
-    content: contentString
-  });
-
-
- marker.addListener('click', function() {
-    infowindow.open(map, marker);
-  });
+ 
 
 
 
@@ -145,7 +107,65 @@ var contentString ='<h5> <?php echo $x ?> </h5>'
           $("#error").append("Unable to retrieve your route<br />");
       }
     );
-  }
+
+
+ var markers = [
+        <?php if($result->num_rows > 0){
+            while($row = $result->fetch_assoc()){
+                echo '["'.$row['name'].'", '.$row['lat'].', '.$row['lng'].'],';
+            }
+        }
+        ?>
+    ];
+
+     var infoWindowContent = [
+        <?php if($result2->num_rows > 0){
+            while($row = $result2->fetch_assoc()){ ?>
+                ['<div class="info_content">' +
+                '<h3><?php echo $row['name']; ?></h3>' +
+                '<p><?php echo $row['info']; ?></p>' + '</div>'],
+        <?php }
+        }
+        ?>
+    ];
+        
+    // Add multiple markers to map
+    var infoWindow = new google.maps.InfoWindow(), marker, i;
+
+     for( i = 0; i < markers.length; i++ ) {
+        var position = new google.maps.LatLng(markers[i][1], markers[i][2]);
+        bounds.extend(position);
+        marker = new google.maps.Marker({
+            position: position,
+            map: mapObject,
+            title: markers[i][0]
+        });
+
+          google.maps.event.addListener(marker, 'click', (function(marker, i) {
+            return function() {
+                infoWindow.setContent(infoWindowContent[i][0]);
+                infoWindow.open(map, marker);
+            }
+        })(marker, i));
+
+        }
+
+         var boundsListener = google.maps.event.addListener((map), 'bounds_changed', function(event) {
+        this.setZoom(10);
+        google.maps.event.removeListener(boundsListener);
+    });
+
+
+
+       }
+
+
+
+
+
+ 
+
+  
 
 
   
@@ -154,6 +174,7 @@ var contentString ='<h5> <?php echo $x ?> </h5>'
 
   $(document).ready(function() {
     // If the browser supports the Geolocation API
+    
     if (typeof navigator.geolocation == "undefined") {
       $("#error").text("Your browser doesn't support the Geolocation API");
       return;
@@ -187,6 +208,7 @@ var contentString ='<h5> <?php echo $x ?> </h5>'
     $("#calculate-route").submit(function(event) {
       event.preventDefault();
       calculateRoute($("#from").val(), $("#to").val());
+      
     });
   });
 
@@ -196,17 +218,18 @@ var contentString ='<h5> <?php echo $x ?> </h5>'
 </script>
 <script>
 function scrollWin() {
-  window.scrollBy(0, 600);
+  window.scrollBy(0, 800);
 }
 </script>
 
+<script>
+  function scrollwin2(){
+  document.getElementById("map").style.height = "100%";
+}
+</script>
 
  <style type="text/css">
-      #map { 
      
-        height: 100%;
-        margin-top: 10px;
-      }
       html, body {
         height: 100%;
         margin: 0;
@@ -221,13 +244,36 @@ function scrollWin() {
       	color: black;
       	font-weight: bold;
       }
+
+      @media only screen and (max-width: 768px) {
+
+          #map{
+            zoom : 150%;
+          }
+
+      }
     </style>
 </head>
 <body>
-	
+	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+  <ul class="navbar-nav">
+    <li class="nav-item active">
+      <a class="nav-link" href="#">About Us</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="heatmap.php">Heatmap</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="map_1.php">Geofence</a>
+    </li>
+  
+  </ul>
+</nav>
+
+
 	<div class="limiter" id="maindiv">
 		<div class="container-login100" style="background-image: url('images/img-01.jpg');">
-			<div class="wrap-login100 p-t-190 p-b-30">
+			<div class="wrap-login100 p-t-1 p-b-30">
 				<form class="login100-form validate-form" id="calculate-route" name="calculate-route" action="#" method="get">
 					
 
@@ -254,9 +300,15 @@ function scrollWin() {
 						
 					</div>
 					 <a id="to-link" href="#">Get my position</a>
+<div class="radio">
+<span></span>  <label><input type="radio" name="optradio" checked><h6><b> Day </b></h6></label></span>  
+
+
+ <span><label><input type="radio" name="optradio"><h6><b> Night </b></h6></label></span> 
+</div>
 
 					<div class="container-login100-form-btn p-t-10">
-						<button class="login100-form-btn" type="submit" id="sub" onclick="calculateRoute();scrollWin();" >
+						<button class="login100-form-btn" type="submit" id="sub" onclick="scrollwin2();calculateRoute();scrollWin();" >
 							Directions
 						</button>
 					
@@ -269,7 +321,7 @@ function scrollWin() {
 
 		</div>
 	</div>
-	
+	  <div id="map"></div>
     <p id="error"></p>
 	
 	
