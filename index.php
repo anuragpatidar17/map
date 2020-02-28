@@ -160,18 +160,6 @@ if ($mysqli -> connect_errno) {
        }
 
 
-
-
-
- 
-
-  
-
-
-  
-
-
-
   $(document).ready(function() {
     // If the browser supports the Geolocation API
     
