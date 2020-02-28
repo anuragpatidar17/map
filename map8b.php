@@ -20,23 +20,20 @@ $api = "https://maps.googleapis.com/maps/api/directions/json?origin='.$addr1.'&d
 $samp = file_get_contents($api);
 
 $samp1 = json_decode($samp);
+$elementCount  = count($samp1);
 
-
-for($i=0;$i<20;$i++)
+for($i=0;$i<$elementCount;$i++)
 {
  $latitudeFrom = $samp1->routes[0]->legs[0]->steps[$i]->start_location->lat;
- $longitudeTo = $samp1->routes[0]->legs[0]->steps[$i]->start_location->lng;
+  $longitudeTo = $samp1->routes[0]->legs[0]->steps[$i]->start_location->lng;
+   $latitudeFrom1 = $samp1->routes[0]->legs[0]->steps[$i]->end_location->lat;
+   $longitudeTo1 = $samp1->routes[0]->legs[0]->steps[$i]->end_location->lng;
 
- echo  "Lat - ".$latitudeFrom."    "." Lng - ".$longitudeTo."<br>";
 
-               $result = $mysqli->query("select lat,lng from accounts WHERE lat=$latitudeFrom OR lng=$longitudeTo");
-                $row = mysqli_num_rows($result);
-                if($row >0){
-                	echo  "Final-"." "."Lat - ".$latitudeFrom."    "." Lng - ".$longitudeTo."<br>";
-                  break;
 
-         }
+ echo  "Lat - ".$latitudeFrom."    "." Lng - ".$longitudeTo."<br>".$latitudeFrom1."<br>".$longitudeTo1."<br>";
 
+             
            
 
 }

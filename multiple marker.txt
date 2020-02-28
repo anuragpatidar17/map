@@ -13,7 +13,7 @@ if ($mysqli -> connect_errno) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Map</title>
+	<title>Login V12</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--===============================================================================================-->	
@@ -59,7 +59,7 @@ if ($mysqli -> connect_errno) {
      var bounds = new google.maps.LatLngBounds();
     var myOptions = {
       zoom: 10,
-      center: new google.maps.LatLng(22.7073135,75.8243435),
+      center: new google.maps.LatLng(28.644800,77.216721),
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       
 };
@@ -87,7 +87,6 @@ if ($mysqli -> connect_errno) {
       directionsRequest,
       function(response, status)
           {
-
             if (status == google.maps.DirectionsStatus.OK)
             {
               for(var i=0,len=response.routes.length;i<len;i++)
@@ -111,36 +110,13 @@ if ($mysqli -> connect_errno) {
 
 
  var markers = [
- <?php
-
-$formattedAddrFrom = $_GET['from'];
-$formattedAddrTo = $_GET['to'];
-
- $addr1 = str_replace(' ', '+', $formattedAddrFrom);
- $addr2 = str_replace(' ', '+', $formattedAddrTo);
-
-$api = "https://maps.googleapis.com/maps/api/directions/json?origin='.$addr1.'&destination='.$addr2.'&key=AIzaSyC7A7SxsYrrTJG8Aj3r-xMt1bGL00qJiLM";
-$samp = file_get_contents($api);
-
-$samp1 = json_decode($samp);
-
-
-for($i=0;$i<20;$i++)
-{
- $latitudeFrom = $samp1->routes[0]->legs[0]->steps[$i]->start_location->lat;
- $longitudeTo = $samp1->routes[0]->legs[0]->steps[$i]->start_location->lng;
-
-
-               $result = $mysqli->query("select lat,lng,name from accounts WHERE lat=$latitudeFrom OR lng=$longitudeTo");
-                if($result->num_rows > 0){
+        <?php if($result->num_rows > 0){
             while($row = $result->fetch_assoc()){
                 echo '["'.$row['name'].'", '.$row['lat'].', '.$row['lng'].'],';
             }
         }
-
-         }
-?>
-];
+        ?>
+    ];
 
      var infoWindowContent = [
         <?php if($result2->num_rows > 0){
@@ -178,10 +154,19 @@ for($i=0;$i<20;$i++)
         this.setZoom(10);
         google.maps.event.removeListener(boundsListener);
     });
-
-
-
        }
+
+
+
+
+
+ 
+
+  
+
+
+  
+
 
 
   $(document).ready(function() {
@@ -278,14 +263,12 @@ function scrollWin() {
     <li class="nav-item">
       <a class="nav-link" href="map_1.php">Geofence</a>
     </li>
-  
+   
   </ul>
 </nav>
-
-
 	<div class="limiter" id="maindiv">
 		<div class="container-login100" style="background-image: url('images/img-01.jpg');">
-			<div class="wrap-login100 p-t-1 p-b-30">
+			<div class="wrap-login100 p-t-190 p-b-30">
 				<form class="login100-form validate-form" id="calculate-route" name="calculate-route" action="#" method="get">
 					
 
@@ -312,12 +295,6 @@ function scrollWin() {
 						
 					</div>
 					 <a id="to-link" href="#">Get my position</a>
-<div class="radio">
-<span></span>  <label><input type="radio" name="optradio" checked><h6><b> Day </b></h6></label></span>  
-
-
- <span><label><input type="radio" name="optradio"><h6><b> Night </b></h6></label></span> 
-</div>
 
 					<div class="container-login100-form-btn p-t-10">
 						<button class="login100-form-btn" type="submit" id="sub" onclick="scrollwin2();calculateRoute();scrollWin();" >
